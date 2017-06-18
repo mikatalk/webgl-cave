@@ -60,7 +60,7 @@ const fs = `
 
 `;
 
-class Land {
+class Floor {
   constructor () {
 
     // let triangles = 1;
