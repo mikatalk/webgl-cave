@@ -86,8 +86,8 @@ const fs = `
       color.rgba = vec4(.5, .5, .9, 1.0);
     // else 
     else
-      discard;
-      // color = vec4(0.2, 0.8, 0.2, .2);
+      // discard;
+      color = vec4(0.2, 0.8, 0.2, .2);
     // color.r = rand(vPosition.xy);
     gl_FragColor = color;
     // gl_FragColor.a = clamp(distance(vPosition.xyz, vCamPos.xyz) / 250., 0.0, 1.0) ;
