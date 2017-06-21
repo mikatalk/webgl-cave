@@ -34,8 +34,8 @@ class GL {
     this.controls.enableZoom = true;
     this.controls.enableRotate = false;
 
-    this.camera.position.y = -160;
-    this.camera.position.z = 20;
+    this.camera.position.y = -350;
+    this.camera.position.z = 100;
     this.camera.lookAt(this.scene.position);
 
     this.floor = new Floor;

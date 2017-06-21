@@ -51,6 +51,8 @@ ${noise}
 
 
 offset.z += noise(position.xy*vec2(.01)+vec2(0.0,time*.2))* 100.0;
+    // offset.z = sin(uv.y*PI2+time*.5)*5.0;
+    offset.z = min(offset.z, cos(uv.x*PI2*.2)*100.0);
 offset.z -= 50.0; 
 
 vPosition = offset + position;

@@ -16,7 +16,6 @@ const vs = `
     vec3 offset = vec3(0.0);
     offset.x += sin(vUv.y*PI2 + time*.25) * 5.0;
     offset.z += sin(uv.y*PI2+time*.5)*5.0;
-    sin(uv.y*PI2+time*.15)*4.0;
     offset.z += cos(uv.x*PI2)*10.0;
     
     // offset.z *= abs(position.y)*5.;
