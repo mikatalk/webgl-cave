@@ -21,9 +21,10 @@ class GL {
     this.renderer.sortObjects = true;
     this.renderer.setSize( window.innerWidth, window.innerHeight ) ;
     // this.renderer.setClearColor(0xffffff);
-    this.renderer.setClearColor(0x130c25);
-    this.renderer.setPixelRatio(.5)
-    // this.renderer.setPixelRatio(window.devicePixelRatio || 1)
+    // this.renderer.setClearColor(0x130c25);
+    this.renderer.setClearColor(0);
+    // this.renderer.setPixelRatio(.5)
+    this.renderer.setPixelRatio(window.devicePixelRatio || 1)
 
     this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
     // this.controls.addEventListener( 'change', this.render ); // remove when using animation loop

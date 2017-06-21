@@ -88,8 +88,8 @@ const fs = `
       // color.rgba = vec4(.5, .5, .9, 1.0);
     // else 
     else
-      color = vec4(.75, .30, 0.7, .2);
-      // discard;
+      // color = vec4(.75, .30, 0.7, .2);
+      discard;
       // color = vec4(0.2, 0.2, 0.8, .2);
     // color.r = rand(vPosition.xy);
     gl_FragColor = color;
@@ -105,7 +105,7 @@ const fs = `
 class Floor {
   constructor () {
 
-    let geometryBase = new THREE.PlaneGeometry(500, 500, 50, 50)
+    let geometryBase = new THREE.PlaneGeometry(500, 500, 100, 100)
     let geometry = new THREE.BufferGeometry().fromGeometry( geometryBase );
     let length = geometry.attributes.position.count;
     let barycentric = new THREE.BufferAttribute(new Float32Array(length*3), 3);
