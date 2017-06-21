@@ -1,18 +1,4 @@
-const vs = `
-
-  precision highp float;
-
-  uniform float time;
-  uniform float sineTime;
-  attribute vec4 color;
-
-  varying vec3 vCamPos;
-  varying vec3 vPosition;
-  varying vec2 vUv;
-
-// float rand(vec2 co){
-//     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
-// }
+const noise = `
 
 // 2D Random
 float random (in vec2 st) { 
@@ -42,6 +28,21 @@ float noise (in vec2 st) {
             (c - a)* u.y * (1.0 - u.x) + 
             (d - b) * u.x * u.y;
 }
+`;
+
+const vs = `
+
+  precision highp float;
+
+  uniform float time;
+  uniform float sineTime;
+  attribute vec4 color;
+
+  varying vec3 vCamPos;
+  varying vec3 vPosition;
+  varying vec2 vUv;
+
+${noise}
 
   void main(){
     float  PI2 = 6.28;
@@ -49,30 +50,10 @@ float noise (in vec2 st) {
     vec3 offset = vec3(0.0);
 
 
-    // jiglle horizontally
-    offset.x += sin(vUv.y*PI2 + time*.25) * 5.0;
-    offset.x *= ( 1.0-sin(uv.x*PI2) ) * 2.;// + sin(time*.1)*.3 + sin(time*.05)*.4 ) ) * 2.0;
-   
+offset.z += noise(position.xy*vec2(.01)+vec2(0.0,time*.2))* 100.0;
+offset.z -= 50.0; 
 
-
-    offset.z += sin(uv.y*PI2+time*.35) * 10.0 - 10.0;
-    offset.z += cos(uv.x*PI2)*10.0;
-    offset.z += cos(uv.x*PI2 + sin(time*.015+.25)*.3 + sin(time*.15+.25)*.4 )*10.0;
-    offset.z += .5; // prevent line over 0.0
-    // offset.z *= 10.0; // prevent line over 0.0
-
-    // offset.z += rand(position.xy*vec2(100.0))* 1.0;
-
-// vec2 st = gl_FragCoord.xy/u_resolution.xy;
-offset.z += noise(uv.xy*vec2(.01)+vec2(time*.2))* 1.0;
-
-    // offset.z *= abs(position.y)*5.;
-    // offset.z -= 60.0 -offset.z * 10.0;
-    // offset.z -= 20.0;
-    offset.z *= 1.6;
-    // offset.z += position.z;//*PI2)*10.0;
-    
-    vPosition = offset + position;
+vPosition = offset + position;
 
 if ( vPosition.z < -21.0 )
   vPosition.z = -21.0;
@@ -96,12 +77,12 @@ const fs = `
 
   void main() {
     float  PI2 = 6.28;
-    float v = 6.0;//1.0/50.0 * 1.0;    
+    float v = 4.0;//1.0/50.0 * 1.0;    
     vec4 color = vec4(0.);
     if ( vPosition.z < -20.0 ) // water level
-      color = vec4(0.15, 0.1, 0.3, 1.0);
+      color = vec4(.75, .30, 0.7, 1.0);
       // discard;
-    else if (mod(vPosition.z, v) < v/3.0 )
+    else if (mod(vPosition.z, v) < v/20.0 )
       color.rgba = vec4(.5, .5, .9, 1.0);
     // else 
     else
@@ -113,7 +94,7 @@ const fs = `
 
     // gl_FragColor.a = min(gl_FragColor.a, cos( min(1.0, distance( vCamPos.xy, vPosition.xy)/2000.0 ) * 3.14));  
     // gl_FragColor.a = min(gl_FragColor.a, cos( min(1.0, distance( vCamPos.xy, vPosition.xy)/2000.0 ) * 3.14));  
-    // gl_FragColor.a = min(gl_FragColor.a, cos( min(1.0, length(vPosition.xy)/2500.0) * 3.14));  
+    gl_FragColor.a = min(gl_FragColor.a, clamp(0.0, 1.0, 4.0*cos( min(1.0, length(vPosition.xy)/500.0) * 3.14)));  
   }
 
 `;
@@ -121,7 +102,7 @@ const fs = `
 class Floor {
   constructor () {
 
-    let geometryBase = new THREE.PlaneGeometry(500, 2500, 50, 50)
+    let geometryBase = new THREE.PlaneGeometry(500, 500, 50, 50)
     let geometry = new THREE.BufferGeometry().fromGeometry( geometryBase );
     let length = geometry.attributes.position.count;
     let barycentric = new THREE.BufferAttribute(new Float32Array(length*3), 3);
