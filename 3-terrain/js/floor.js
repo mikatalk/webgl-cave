@@ -80,14 +80,17 @@ const fs = `
     float v = 4.0;//1.0/50.0 * 1.0;    
     vec4 color = vec4(0.);
     if ( vPosition.z < -20.0 ) // water level
-      color = vec4(.75, .30, 0.7, 1.0);
+      color = vec4(0.2, 0.2, 0.8, .2);
+      // color = vec4(.75, .30, 0.7, 1.0);
       // discard;
     else if (mod(vPosition.z, v) < v/20.0 )
-      color.rgba = vec4(.5, .5, .9, 1.0);
+      color = vec4(.75, .30, 0.7, 1.0);
+      // color.rgba = vec4(.5, .5, .9, 1.0);
     // else 
     else
+      color = vec4(.75, .30, 0.7, .2);
       // discard;
-      color = vec4(0.2, 0.8, 0.2, .2);
+      // color = vec4(0.2, 0.2, 0.8, .2);
     // color.r = rand(vPosition.xy);
     gl_FragColor = color;
     // gl_FragColor.a = clamp(distance(vPosition.xyz, vCamPos.xyz) / 250., 0.0, 1.0) ;
