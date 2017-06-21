@@ -8,7 +8,7 @@ class GL {
 
   init(){
 
-    this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 2000 );
+    this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 20000 );
     
     this.scene = new THREE.Scene();
 
@@ -20,6 +20,7 @@ class GL {
     });
     this.renderer.sortObjects = true;
     this.renderer.setSize( window.innerWidth, window.innerHeight ) ;
+    // this.renderer.setClearColor(0xffffff);
     this.renderer.setClearColor(0x130c25);
     // this.renderer.setPixelRatio(.5)
     this.renderer.setPixelRatio(window.devicePixelRatio || 1)

@@ -16,9 +16,7 @@ const vs = `
 
 // 2D Random
 float random (in vec2 st) { 
-    return fract(sin(dot(st.xy,
-                         vec2(12.9898,78.233)))
-                 * 43758.5453123);
+  return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
 }
 
 // 2D Noise based on Morgan McGuire @morgan3d
@@ -53,14 +51,15 @@ float noise (in vec2 st) {
 
     // jiglle horizontally
     offset.x += sin(vUv.y*PI2 + time*.25) * 5.0;
-    offset.x *= ((sin(uv.x*PI2) + sin(time*.1)*.3 + sin(time*.05)*.4 ) ) * 2.0;
+    offset.x *= ( 1.0-sin(uv.x*PI2) ) * 2.;// + sin(time*.1)*.3 + sin(time*.05)*.4 ) ) * 2.0;
    
 
 
-    offset.z += sin(uv.y*PI2+time*.25)*5.0;
+    offset.z += sin(uv.y*PI2+time*.35) * 10.0 - 10.0;
     offset.z += cos(uv.x*PI2)*10.0;
     offset.z += cos(uv.x*PI2 + sin(time*.015+.25)*.3 + sin(time*.15+.25)*.4 )*10.0;
     offset.z += .5; // prevent line over 0.0
+    // offset.z *= 10.0; // prevent line over 0.0
 
     // offset.z += rand(position.xy*vec2(100.0))* 1.0;
 
@@ -74,6 +73,10 @@ offset.z += noise(uv.xy*vec2(.01)+vec2(time*.2))* 1.0;
     // offset.z += position.z;//*PI2)*10.0;
     
     vPosition = offset + position;
+
+if ( vPosition.z < -21.0 )
+  vPosition.z = -21.0;
+
 
 vCamPos = cameraPosition;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(  vPosition, 1.0 );
@@ -93,7 +96,7 @@ const fs = `
 
   void main() {
     float  PI2 = 6.28;
-    float v = 2.0;//1.0/50.0 * 1.0;    
+    float v = 6.0;//1.0/50.0 * 1.0;    
     vec4 color = vec4(0.);
     if ( vPosition.z < -20.0 ) // water level
       color = vec4(0.15, 0.1, 0.3, 1.0);
@@ -110,7 +113,7 @@ const fs = `
 
     // gl_FragColor.a = min(gl_FragColor.a, cos( min(1.0, distance( vCamPos.xy, vPosition.xy)/2000.0 ) * 3.14));  
     // gl_FragColor.a = min(gl_FragColor.a, cos( min(1.0, distance( vCamPos.xy, vPosition.xy)/2000.0 ) * 3.14));  
-    gl_FragColor.a = min(gl_FragColor.a, cos( min(1.0, length(vPosition.xy)/250.0) * 3.14));  
+    // gl_FragColor.a = min(gl_FragColor.a, cos( min(1.0, length(vPosition.xy)/2500.0) * 3.14));  
   }
 
 `;
@@ -118,7 +121,7 @@ const fs = `
 class Floor {
   constructor () {
 
-    let geometryBase = new THREE.PlaneGeometry(180, 500, 50, 50)
+    let geometryBase = new THREE.PlaneGeometry(500, 2500, 50, 50)
     let geometry = new THREE.BufferGeometry().fromGeometry( geometryBase );
     let length = geometry.attributes.position.count;
     let barycentric = new THREE.BufferAttribute(new Float32Array(length*3), 3);
