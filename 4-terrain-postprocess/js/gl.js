@@ -40,26 +40,68 @@ class GL {
     this.camera.position.z = 100;
     this.camera.lookAt(this.scene.position);
 
+    this.composer = new THREE.EffectComposer(this.renderer);
+    this.composer = new THREE.EffectComposer( this.renderer );
+    this.composer.addPass( new THREE.RenderPass( this.scene, this.camera ) );
+
+    let effect = new THREE.ShaderPass( THREE.CopyShader );
+    effect.renderToScreen = true;
+    this.composer.addPass( effect );
+
+    // let effect = new THREE.ShaderPass( THREE.RGBShiftShader );
+    // effect.uniforms[ 'amount' ].value = 0.0015;
+    // effect.renderToScreen = true;
+    // this.composer.addPass( effect );
+
+    // let effect = new THREE.ShaderPass( THREE.BrightnessContrastShader );
+    // effect.uniforms[ 'brightness' ].value = 0;
+    // effect.uniforms[ 'contrast' ].value = 2.5;
+    // effect.renderToScreen = true;
+    // this.composer.addPass( effect );
+
+    // let effect = new THREE.ShaderPass( THREE.DotScreenShader );
+    // effect.uniforms[ 'scale' ].value = 4;
+    // effect.renderToScreen = true;
+    // this.composer.addPass( effect );
+
+    
     this.floor = new Floor;
 
     this.scene.add( this.floor.mesh );
 
     window.addEventListener( 'resize', this.handleResize.bind(this), false );
 
-    window.app = this;
   }
     
   handleResize (e) {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize( window.innerWidth, window.innerHeight);
+    // this.floor.updateAspectRatio(this.camera.aspect);
+
+    // let halfWidth = window.innerWidth/2;
+    // let halfHeight = window.innerHeight/2;
+    // this.composer.setSize(halfWidth, halfHeight);
+
+    this.renderer.setSize( window.innerWidth, window.innerHeight );
+    this.composer.setSize( window.innerWidth, window.innerHeight );
   }
 
-  animate () {
+  // setMouse (x,y){
+  //   this.mouse.setX( (x-window.innerWidth/2) / window.innerWidth * 2 );
+  //   this.mouse.setY( (y-window.innerHeight/2) / window.innerHeight * 2 );
+  // }
+
+  animate(){
     requestAnimationFrame( this.animate.bind(this) );
-    
+    // this.controls.update();
+    // console.log(this.camera.rotation)
+    // this.camera.position.x = Math.sin(time*.5)*40;
+
     var time = performance.now();
     this.floor.update( time * 0.007);
-    this.renderer.render( this.scene, this.camera );
+// this.floor.mesh.rotation.z = time *.0002
+    this.composer.render();
+    // this.renderer.render( this.scene, this.camera );
   }
 }
