@@ -1,4 +1,13 @@
-
+/******************************
+ - PASS 1 - mouse map
+ create mouse map of position and velocity 
+ - PASS 2 - ping pong
+ apply new mouse map to previous frame buffer 
+ save buffer onto current frame
+ - PASS 3 - Final to screen
+ copy current frame to screen
+ toggle current/previous refs
+******************************/
 
 ////////////////////////////
 // PASS 1 - Mouse Map
@@ -12,14 +21,15 @@ const vertexMouseMap = `
 const fragmentMouseMap = `
   uniform vec2 mouse;
   uniform vec2 mouseVelocity;
-  uniform float time;
   varying vec2 vUv;
   void main() {
     vec3 color = vec3(0.0, 0.0, 0.0);
-    float alpha = 1.0 - distance(vUv.xy, mouse.xy) * 10.0;
+    float alpha = 1.0 - distance(vUv.xy, mouse.xy) * 6.0;
     color.r += alpha;
     color.g += (.5 + mouseVelocity.x) * alpha;
     color.b += (.5 + mouseVelocity.y) * alpha;
+    color = clamp(vec3(0.0), vec3(1.0), color);
+
     gl_FragColor = vec4(color, alpha);
   }
 `;
@@ -36,23 +46,16 @@ const vertexPingPong = `
 `;
 const fragmentPingPong = `
   varying vec2 vUv;
+  uniform float elapsedTime;
   uniform sampler2D mouseMap;
   uniform sampler2D previousFrame;
   // uniform float time;
   void main() {
     vec4 color = vec4(0.0);
-    color +=  texture2D( previousFrame, vUv ) * .97;
-    color +=  texture2D( mouseMap, vUv );
+    color += texture2D( mouseMap, vUv );
+    color += texture2D( previousFrame, vUv ) - elapsedTime;
+    color = clamp(vec4(0.0), vec4(1.0), color);
     gl_FragColor = color;
-    // gl_FragColor = mix( texture2D( mouseMap, vUv ), texture2D( previousFrame, vUv ), .98);
-    if ( gl_FragColor.r < .005 ) discard;
-    // gl_FragColor = texture2D( mouseMap, vUv );
-    // gl_FragColor += texture2D( previousFrame, vUv );
-
-    // vec3 color = vec3(0.0, 0.0, 0.0);
-    // color.r += 1.0 - distance(vUv.xy, vMouse.xy) * 10.0;
-    // gl_FragColor = vec4(color, 1.0);
-    // gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);
   }
 `;
 ////////////////////////////
@@ -105,7 +108,6 @@ class GL {
     this.rtTextureMouseMap = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, format: THREE.RGBAFormat } );
     this.materialMouseMap = new THREE.ShaderMaterial( {
       uniforms: { 
-        time: { value: 0.0 },
         mouse: { value: new THREE.Vector2(this.mouseX, this.mouseY) },
         mouseVelocity: { value: new THREE.Vector2(this.previousMouseX, this.previousMouseY) },
       },
@@ -122,6 +124,7 @@ class GL {
       uniforms: { 
         mouseMap: { value: this.rtTextureMouseMap.texture },
         previousFrame: { value: null },
+        elapsedTime: { type: '1f', value: 0 }
       },
       vertexShader: vertexPingPong,
       fragmentShader: fragmentPingPong,
@@ -155,7 +158,7 @@ class GL {
     this.canvas = document.getElementById('gl');
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
-      antialias: true,
+      // antialias: true,
       transparent: true,
       autoClear: false,
     });
@@ -163,7 +166,7 @@ class GL {
     // this.renderer.setClearColor(0xffffff);
     // this.renderer.setClearColor(0x130c25);
     // this.renderer.setClearColor(0);
-    this.renderer.autoClear = false;
+    // this.renderer.autoClear = false;
     this.renderer.setPixelRatio(.5)
     // this.renderer.setPixelRatio(1)
     // this.renderer.setPixelRatio(window.devicePixelRatio || 1);
@@ -183,16 +186,14 @@ class GL {
     // save uniforms
     this.materialMouseMap.uniforms.mouse.value.x = this.mouseX;
     this.materialMouseMap.uniforms.mouse.value.y = this.mouseY;
-
-    let intensity = 100;
+    // estimate velocity of movememt
+    let intensity = 50;
     let velX = (this.mouseX - this.previousMouseX) * intensity
     velX = Math.min(.5, Math.max(-.5, velX));
     let velY = (this.mouseY - this.previousMouseY) * intensity
     velY = Math.min(.5, Math.max(-.5, velY));
     this.materialMouseMap.uniforms.mouseVelocity.value.x = velX;
     this.materialMouseMap.uniforms.mouseVelocity.value.y = velY;
-
-console.log(velX, velY)
   }
 
   handleResize (e) {
@@ -208,30 +209,34 @@ console.log(velX, velY)
 
     requestAnimationFrame( this.animate.bind(this) );
 
-    // - PASS 1 - mouse map
-    // create mouse map of position and velocity 
-    // - PASS 2 - ping pong
-    // apply new mouse map to previous frame buffer 
-    // save buffer onto current frame
-    // - PASS 3 - Final to screen
-    // copy current frame to screen
-    // toggle current/previous refs
-
-    // this.renderer.clear();
 
     // PASS 1
-    this.materialMouseMap.uniforms.time.value = elapsedTime * 0.0001;
+    // this.materialMouseMap.uniforms.time.value = elapsedTime / 10000000000000;
     this.renderer.render( this.sceneMouseMap, this.camera, this.rtTextureMouseMap, true );
+
     // PASS 2
     this.materialPingPong.uniforms.previousFrame.value = this.pingPongToggle ? this.rtTextureA.texture : this.rtTextureB.texture;
     this.renderer.render( this.scenePingPong, this.camera, !this.pingPongToggle ? this.rtTextureA : this.rtTextureB, true );
     this.pingPongToggle = !this.pingPongToggle;    
+
     // PASS 3    
     this.materialFinalScreen.uniforms.merged.value = this.pingPongToggle ? this.rtTextureA.texture : this.rtTextureB.texture;
     this.renderer.render( this.sceneFinalScreen, this.camera );
 
-    // this.pingPongToggle != this.pingPongToggle;    
 
-    
+this.materialPingPong.uniforms.elapsedTime.value = elapsedTime * 0.000001
+// console.log('-', elapsedTime * 0.0000001)
+// let velX = this.materialMouseMap.uniforms.mouseVelocity.value.x;
+// velX += -velX * .69
+// this.materialMouseMap.uniforms.mouseVelocity.value.x = velX;
+// (this.mouseX - this.previousMouseX) * intensity
+//     velX = Math.min(.5, Math.max(-.5, velX));
+//     let velY = (this.mouseY - this.previousMouseY) * intensity
+//     velY = Math.min(.5, Math.max(-.5, velY));
+//     this.materialMouseMap.uniforms.mouseVelocity.value.x = velX;
+//     this.materialMouseMap.uniforms.mouseVelocity.value.y = velY;
+// this.previousMouseX += ( this.mouseX - this.previousMouseX ) * .8  
+// this.materialMouseMap.uniforms.mouseVelocity.value.x = this.previousMouseX;
+//     // this.materialMouseMap.uniforms.mouseVelocity.value.y = velY;  
   }
 }
